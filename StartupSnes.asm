@@ -132,6 +132,9 @@ IRQ:
 DIRQ:
 	rti
 
+VBlankInt:
+        rti
+
 ;******************************************************************************
 ;*** SNES ROM Registartion Data                                             ***
 ;******************************************************************************
@@ -172,7 +175,7 @@ N_IRQ   DW   IRQ
 E_COP   DW   DIRQ
 E_RSRVD DW   DIRQ
 E_ABORT DW   DIRQ
-E_NMI   DW   DIRQ
+E_NMI   DW   VBlankInt
 E_RESET DW   START
 E_IRQ   DW   DIRQ
 
