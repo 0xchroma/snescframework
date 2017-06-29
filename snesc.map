@@ -5,14 +5,25 @@ Section CODE:
 	00008111 __DisableNMI
 	0000811b __EnableNMI
 	00008125 __ClearVRam
-	00008168 __WriteVRAM
-	000081a8 __main
-	000081ff __IRQHandler
-	00008213 _END_CODE
+	00008168 __WaitVBlank
+	0000816a __SetTileMapLocation
+	000081b8 __SetCharLocation
+	00008225 __waitForVBlank
+	00008242 __WriteVRam
+	00008292 __main
+	00008315 __IRQHandler
+	00008329 __~lsr
+	00008331 _END_CODE
 
 Section DATA:
-	00008213 _BEG_DATA
-	00008233 _END_DATA
+	00008331 _BEG_DATA
+	00008351 _END_DATA
+
+Section UDATA:
+	00008351 _BEG_UDATA
+	00008351 __charLocation
+	00008359 __tilemapLocation
+	0000835d _END_UDATA
 
 Section registration_data:
 	0000ffb0 _BEG_REGISTRATION_DATA
