@@ -4,7 +4,7 @@
 #define CGRAMWRITEREG           0x2122
 
 #define PPUENABLE               0x2115
-#define VRAMADDRLOW             0x2116
+#define VRAMADDR                0x2116
 
 #define DMAENABLE               0x420b
 
@@ -20,14 +20,14 @@
 #define READBYTE(v)     *(unsigned char*)v
 #define READWORD(v)     *(unsigned short*)v
 
-void memcpy(void* dst, void* src, unsigned short length);
+#define WAITVBLANK()    asm wai;
 
-unsigned short RGBtoBGR555(unsigned char r, unsigned char g, unsigned char b)
-{
-    return ((b & 0x1f) << 5 | 
-            (g & 0x1f) << 5 | 
-            (r & 0x1f) << 5) & 0x7FFF;
-}
+#define WRITEPALCOL(i, v) \
+    WRITEBYTE(0x2121, i); \
+    WRITEWORD(0x2122, (v & 0xFF00) >> 8); \
+    WRITEWORD(0x2122, (v & 0x00FF));
+
+void memcpy(void* dst, void* src, unsigned short length);
 
 void DisableNMI()
 {
@@ -39,19 +39,13 @@ void EnableNMI()
     WRITEBYTE(0x4200, 0x80);
 }
 
-void WaitVSync()
-{
-    while (((READBYTE(0x4212) & 0xE0) >> 7) != 0) {}
-}
-
 void ClearVRam()
 {
-    unsigned char value = 0;
+    unsigned short null = 0;
+    WRITEWORD(VRAMADDR, 0x00);
+    WRITEWORD(DMASOURCE, (unsigned short)&null);
 
-    WRITEWORD(VRAMADDRLOW, 0x00);
-    WRITEWORD(DMASOURCELOADDR, (unsigned short)&value);
-
-    WRITEWORD(DMASIZELO, 0x10000 - 1);
+    WRITEWORD(DMASIZE, 0x10000 - 1);
 
     WRITEBYTE(PPUENABLE, 0x80);
     WRITEBYTE(DMACONTROL, 0x09);
@@ -60,22 +54,53 @@ void ClearVRam()
     WRITEBYTE(DMAENABLE, 0x01);
 }
 
+void WriteVRAM(
+        const unsigned short dst,
+        const unsigned short src,
+        const unsigned short size)
+{
+    WRITEWORD(VRAMADDR, dst);
+    WRITEWORD(DMASOURCE, (unsigned short)src);
+
+    WRITEWORD(DMASIZE, size);
+
+    WRITEBYTE(PPUENABLE, 0x80);
+    WRITEBYTE(DMACONTROL, 0x09);
+    WRITEBYTE(DMADESTADDR, 0x18);
+    WRITEBYTE(DMASOURCEREG1, 0x7E);
+    WRITEBYTE(DMAENABLE, 0x01);
+}
+
+static const unsigned long tile[8] =
+{
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111
+};
+
 int main()
 {
     DisableNMI();
     ClearVRam();
 
     WRITEBYTE(SCREENDISPLAYREG, 0x00);
-    WRITEBYTE(0x2106, 0xff);
-    WRITEBYTE(CGRAMWRITEREG, 0xef);
-    WRITEBYTE(CGRAMWRITEREG, 0xff);
-    WRITEBYTE(SCREENDISPLAYREG, 0x00);
+
+    WriteVRAM(0x0000, (unsigned short)tile, sizeof(tile) * 2);
+
+    WRITEPALCOL(0, 0x0000);
+    WRITEPALCOL(1, 0x7fff);
+    WRITEBYTE(SCREENDISPLAYREG, 0x0f);
 
     EnableNMI();
 
     while(1)
     {
-        //WaitVSync();
+        WAITVBLANK();
     }
 
     return 0;
