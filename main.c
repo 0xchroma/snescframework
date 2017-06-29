@@ -129,6 +129,8 @@ void WriteVRam(
     WRITEBYTE(0x2100, 0x00);
 }
 
+static const byte test[8] = "hello/0";
+
 
 int main()
 {
@@ -143,6 +145,8 @@ int main()
 
     SetTileMapLocation(0x1000, 0x00, 0x00);
     SetCharLocation(0x2000, 0x00);
+
+    WriteVRam((word)test, 0x1000, 8);
 
     WriteVRam((word)tile, 0x2000, sizeof(tile) * 4);
 
