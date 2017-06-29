@@ -27,7 +27,10 @@
     WRITEWORD(0x2122, (v & 0xFF00) >> 8); \
     WRITEWORD(0x2122, (v & 0x00FF));
 
-void memcpy(void* dst, void* src, unsigned short length);
+#define SETBG1ADDR(v)    WRITEBYTE(0x2107, v)
+#define SETBG2ADDR(v)    WRITEBYTE(0x2108, v)
+#define SETBG3ADDR(v)    WRITEBYTE(0x2109, v)
+#define SETBG4ADDR(v)    WRITEBYTE(0x210A, v)
 
 void DisableNMI()
 {
