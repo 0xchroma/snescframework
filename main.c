@@ -10,47 +10,38 @@
 
 #define DMACONTROL              0x4300
 #define DMADESTADDR             0x4301
-#define DMASOURCELOADDR         0x4302
-#define DMASOURCEHIADDR         0x4303
+#define DMASOURCE               0x4302
 #define DMASOURCEREG1           0x4304
-#define DMASIZELO               0x4305
-#define DMASIZEHI               0x4306
+#define DMASIZE                 0x4305
 
 #define WRITEBYTE(v, d) *(unsigned char*)v = d
 #define WRITEWORD(v, d) *(unsigned short*)v = d
 
-#define READBYTE(v) *(unsigned char*)v
-#define READWORD(v) *(unsigned short*)v
+#define READBYTE(v)     *(unsigned char*)v
+#define READWORD(v)     *(unsigned short*)v
 
-unsigned short RGB24toBGR555(unsigned char r, unsigned char g, unsigned char b)
+void memcpy(void* dst, void* src, unsigned short length);
+
+unsigned short RGBtoBGR555(unsigned char r, unsigned char g, unsigned char b)
 {
-
+    return ((b & 0x1f) << 5 | 
+            (g & 0x1f) << 5 | 
+            (r & 0x1f) << 5) & 0x7FFF;
 }
 
 void DisableNMI()
 {
-    WRITEBYTE(0x4200, 0x80);
+    WRITEBYTE(0x4200, 0x00);
 }
 
 void EnableNMI()
 {
-    WRITEBYTE(0x4200, 0x00);
+    WRITEBYTE(0x4200, 0x80);
 }
 
 void WaitVSync()
 {
-    unsigned char flag = READBYTE(0x4212) & 0xE0;
-    //flag = flag >> 7;
-
-    asm {
-        lda %%flag;
-        lsr 7;
-        sta %%flag
-    };
-    
-    while (flag != 0x00)
-    {
-    }
+    while (((READBYTE(0x4212) & 0xE0) >> 7) != 0) {}
 }
 
 void ClearVRam()
@@ -71,29 +62,20 @@ void ClearVRam()
 
 int main()
 {
-    unsigned char brightness = 0x00;
-
     DisableNMI();
     ClearVRam();
 
     WRITEBYTE(SCREENDISPLAYREG, 0x00);
     WRITEBYTE(0x2106, 0xff);
-    WRITEBYTE(CGRAMWRITEREG, 0xe0);
-    WRITEBYTE(CGRAMWRITEREG, 0x00);
+    WRITEBYTE(CGRAMWRITEREG, 0xef);
+    WRITEBYTE(CGRAMWRITEREG, 0xff);
     WRITEBYTE(SCREENDISPLAYREG, 0x00);
 
     EnableNMI();
 
     while(1)
     {
-        if (brightness == 0)
-            brightness = 0x0f;
-
-        if (brightness > 0)
-            brightness--;
-
-        WRITEBYTE(SCREENDISPLAYREG, brightness);
-        WaitVSync();
+        //WaitVSync();
     }
 
     return 0;
