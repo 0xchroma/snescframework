@@ -1,4 +1,4 @@
-; SNES ROM startup code 
+; SNES ROM startup code
 
 ;******************************************************************************
 ;*** Define a special section in case most of the code is not in bank 0.    ***
@@ -8,24 +8,40 @@
 
 ;STARTUP SECTION OFFSET $008000
 
-	XDEF  	START
+CODE
+
+        XDEF  	START
 START:
         XREF  	__main
-  	
-	sei             ; Disabled interrupts
+
+        sei             ; Disabled interrupts
         clc             ; clear carry to switch to native mode
         xce             ; Xchange carry & emulation bit. native mode
         rep     #$18    ; Binary mode (decimal mode off), X/Y 16 bit
-	LONGI	ON
+        LONGI	ON
         ldx     #$1FFF  ; set stack to $1FFF
         txs
 
+        rep 	#$30
+        longa	on
+        longi	on
+
+        ; Init data used for heap
+        ; see heap definition below
+        XREF ___heap_top
+        XREF ___mem_start
+        stz	___heap_top
+        stz	___mem_start
+
+        XREF	__preInit
+        jsr   	>__preInit
+
         sep     #$30    ; X,Y,A are 8 bit numbers
-	LONGA	OFF
-	LONGI	OFF	
+        LONGA	OFF
+        LONGI	OFF
         lda     #$8F    ; screen off, full brightness
-        sta     $2100   ; brightness + screen enable register 
-        stz     $2101   ; Sprite register (size + address in VRAM) 
+        sta     $2100   ; brightness + screen enable register
+        stz     $2101   ; Sprite register (size + address in VRAM)
         stz     $2102   ; Sprite registers (address of sprite memory [OAM])
         stz     $2103   ;    ""                       ""
         stz     $2105   ; Mode 0, = Graphic mode register
@@ -107,30 +123,73 @@ START:
         stz     $420D   ; Access cycle designation (slow/fast rom)
         cli             ; Enable interrupts
 
-	rep     #$20
-	longa	on
-	longi	on
+        rep     #$30
+        longa	on
+        longi	on
 
         jsr   	>__main
         brk
 
-	XDEF  	IRQ
-	XREF	__IRQHandler
-IRQ:	
-	LONGA	ON
-	LONGI	ON
-	rep	#$30
-	pha
-	phx
-	phy
-	jsr	__IRQHandler
-	ply
-	plx
-	pla
-	rti
+        XDEF IRQ
+IRQ:
+        XREF __IRQHandler
+        LONGA	ON
+        LONGI	ON
+        rep	#$30
+        pha
+        phx
+        phy
+        jsr	__IRQHandler
+        ply
+        plx
+        pla
+        rti
+
+        XDEF	NMI
+NMI:
+        XREF	__NMIHandler
+        LONGA	ON
+        LONGI	ON
+        rep	#$30
+        pha
+        phx
+        phy
+        phd
+        phb
+        lda	#$0000
+        sep     #$30    ; X,Y,A are 8 bit numbers
+        LONGA	OFF
+        LONGI	OFF
+        lda     $4210		; Read NMI
+        LONGA	ON
+        LONGI	ON
+        rep	#$30
+        jsr	__NMIHandler
+        plb
+        pld
+        ply
+        plx
+        pla
+        rti
 
 DIRQ:
-	rti
+        rti
+
+ENDS
+
+;******************************************************************************
+;*** Heap definition                                                        ***
+;******************************************************************************
+
+DATA
+
+        XDEF	__heap_start
+        XDEF	__heap_end
+
+__heap_start:
+        WORD	$1000
+__heap_end:
+        WORD	$1200
 
 ;******************************************************************************
 ;*** SNES ROM Registartion Data                                             ***
@@ -144,8 +203,8 @@ FIXED_VALUE0		BYTE	$00, $00, $00, $00, $00, $00, $00
 EXPANSION_RAM_SIZE	BYTE	$00
 SPECIAL_VERSION		BYTE	$00
 CARTRIDGE_TYPE_SUB	BYTE	$00
-GAME_TITLE		FCC	/GAME TITLE          /
-				;01234567890123456789;
+GAME_TITLE		FCC	/Kranks Konundrum    /
+                                ;01234567890123456789;
 MAP_MODE		BYTE	$20
 CARTRIDGE_SIZE		BYTE	$00
 ROM_SIZE		BYTE	$09
@@ -154,7 +213,7 @@ DESTINATION_CODE	BYTE	$00
 FIXED_VALUE1		BYTE	$33
 MASK_ROM_VERSION	BYTE	$00
 COMPLEMENT_CHECK	BYTE	$00, $00
-CHEKSUM			BYTE	$00, $00 
+CHEKSUM			BYTE	$00, $00
 
 ;******************************************************************************
 ;*** SNES Interrupts and Reset vector                                       ***
@@ -162,13 +221,15 @@ CHEKSUM			BYTE	$00, $00
 
 VECTORS	SECTION OFFSET $FFE4
 
+; Native vector
 N_COP   DW   DIRQ
 N_BRK   DW   DIRQ
-N_ABORT DW   DIRQ        
-N_NMI   DW   DIRQ
+N_ABORT DW   DIRQ
+N_NMI   DW   NMI
 N_RSRVD DW   DIRQ
 N_IRQ   DW   IRQ
         DS   4
+; Emulation vector
 E_COP   DW   DIRQ
 E_RSRVD DW   DIRQ
 E_ABORT DW   DIRQ
@@ -177,4 +238,3 @@ E_RESET DW   START
 E_IRQ   DW   DIRQ
 
 END
-

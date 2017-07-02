@@ -1,2 +1,4 @@
 main.c
 StartupSnes.asm
+registers.h
+types.h

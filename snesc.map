@@ -1,20 +1,31 @@
 Section CODE:
 	00008000 _BEG_CODE
 	00008000 START
-	00008104 IRQ
-	00008111 __DisableNMI
-	0000811b __EnableNMI
-	00008125 __ClearVRam
-	00008168 __WaitVBlank
-	0000816a __waitForVBlank
-	00008187 __WriteVRam
-	000081d7 __main
-	00008227 __IRQHandler
-	0000823b _END_CODE
+	00008110 IRQ
+	0000811c NMI
+	00008137 __heap_start
+	00008139 __heap_end
+	0000813b __SetInterruptRegister
+	00008158 __ClearVRam
+	0000819b __waitForVBlank
+	000081b8 __WriteVRam
+	0000823e __preInit
+	0000823f __main
+	000082e6 __IRQHandler
+	000082e7 __NMIHandler
+	000082ee __sbrk
+	0000831a __memcpy
+	0000833b _END_CODE
 
 Section DATA:
-	0000823b _BEG_DATA
-	0000825f _END_DATA
+	0000833b _BEG_DATA
+	0000837d _END_DATA
+
+Section UDATA:
+	0000837d _BEG_UDATA
+	0000837f ___heap_top
+	00008381 ___mem_start
+	00008383 _END_UDATA
 
 Section registration_data:
 	0000ffb0 _BEG_REGISTRATION_DATA

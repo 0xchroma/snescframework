@@ -1,6 +1,6 @@
-Reading config file C:\emulator\snes9x/snes9x.debugger.cfg
-Saving	config file	C:\emulator\snes9x/snes9x.debugger.cfg
+Reading config file C:\emulators\snes9x/snes9x.debugger.cfg
+Saving	config file	C:\emulators\snes9x/snes9x.debugger.cfg
 No ROM file header found.
 Map_HiROMMap
-"GAME TITLE" [bad checksum] HiROM, Corrupt, Type: ROM, Mode: 00, TV: NTSC, S-RAM: 0KB, ROMId: SMWJ Company: 00 CRC32: 9085E1AD
-Saving	config file	C:\emulator\snes9x/snes9x.debugger.cfg
+"Kranks Konundrum" [bad checksum] HiROM, Corrupt, Type: ROM, Mode: 00, TV: NTSC, S-RAM: 0KB, ROMId: SMWJ Company: 00 CRC32: 87A55DD5
+Saving	config file	C:\emulators\snes9x/snes9x.debugger.cfg
