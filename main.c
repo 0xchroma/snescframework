@@ -1,7 +1,7 @@
 
-
 typedef     unsigned short  word;
 typedef     unsigned char   byte;
+typedef     unsigned long   dword;
 
 #define SCREENDISPLAYREG        0x2100
 
@@ -18,11 +18,11 @@ typedef     unsigned char   byte;
 #define DMASOURCEREG1           0x4304
 #define DMASIZE                 0x4305
 
-#define WRITEBYTE(v, d) *(byte*)(v) = d
-#define WRITEWORD(v, d) *(word*)(v) = d
+#define WRITEBYTE(v, d)     *(byte*)(v) = d
+#define WRITEWORD(v, d)     *(word*)(v) = d
 
-#define READBYTE(v)     *(byte*)v
-#define READWORD(v)     *(word*)v
+#define READBYTE(v)         *(byte*)v
+#define READWORD(v)         *(word*)v
 
 #define WRITEPALCOL(i, v) \
     WRITEBYTE(0x2121, i); \
@@ -59,48 +59,12 @@ void ClearVRam()
     WRITEBYTE(DMAENABLE, 0x01);
 }
 
-static const unsigned long tile[8] =
-{
-    0x11111111,
-    0x11111111,
-    0x11111111,
-    0x11111111,
-    0x11111111,
-    0x11111111,
-    0x11111111,
-    0x11111111
-};
-
-byte tilemapLocation[4];
-word charLocation[4];
-
 void WaitVBlank()
 {
     asm { wai; }
 }
 
-void SetTileMapLocation(
-        word vramDst,
-        byte screenProp,
-        byte bgIndex)
-{
-    byte val = ((vramDst>> 8) & 0xfc) | (screenProp & 0x03);
-    tilemapLocation[bgIndex] = val;
-    WRITEBYTE(0x2017 + bgIndex, val);
-}
-
-void SetCharLocation(
-        word vramDst,
-        byte bgIndex)
-{
-    charLocation[bgIndex] = vramDst;
-    if (bgIndex < 2)
-        WRITEBYTE(0x201b, (byte)(charLocation[1] >> 8 & 0xf0) + (charLocation[0] >> 12));
-    else
-        WRITEBYTE(0x201c, (charLocation[3] >> 8 & 0xf0) + (charLocation[2] >> 12));
-}
-
-void waitForVBlank(void) {
+void waitForVBlank() {
     byte Status;
     do {
         Status = *(byte*)0x4210;
@@ -128,34 +92,46 @@ void WriteVRam(
     WRITEBYTE(0x420b, 0x01);
     WRITEBYTE(0x2100, 0x00);
 }
+// 4bpp planar snes format
+static const long tile[] =
+{
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111,
+    0x11111111
+};
 
-static const byte test[8] = "hello/0";
-
+static const word poop[2] =
+{
+    0x0000,
+    0x0000
+};
 
 int main()
 {
-    charLocation[0] = 0;
-    charLocation[1] = 0;
-    charLocation[2] = 0;
-    charLocation[3] = 0;
-
     ClearVRam();
 
     WRITEBYTE(SCREENDISPLAYREG, 0x00);
 
-    SetTileMapLocation(0x1000, 0x00, 0x00);
-    SetCharLocation(0x2000, 0x00);
+    WRITEBYTE(0x2107, (0x1000 >> 10) & 0xf0); // screen tilemap location 0x1000
+    WRITEBYTE(0x210b, (0x2000 >> 12) & 0xfc); // tile data address 0x2000
 
-    WriteVRam((word)test, 0x1000, 8);
+    WriteVRam((word)tile, 0x2000, sizeof(tile) * sizeof(long));
+    //WriteVRam((word)poop, 0x1000, 2 * 2);
 
-    WriteVRam((word)tile, 0x2000, sizeof(tile) * 4);
+    WRITEPALCOL(0, 0xffff);
+    //WRITEPALCOL(1, 0x7fff);
+    //WRITEPALCOL(2, 0x00ff);
+    //WRITEPALCOL(3, 0x70ff);
+    //WRITEPALCOL(4, 0x7f00);
+    //WRITEPALCOL(5, 0xe111);
 
-    WRITEPALCOL(0, 0x0000);
-    WRITEPALCOL(1, 0x7fff);
-
-    WRITEBYTE(0x2105, 0x01); // mode 1
+    WRITEBYTE(0x2105, 0x02); // mode 2
     WRITEBYTE(0x212c, 0x01); // enable plane 0
-    WRITEBYTE(0x212d, 0x00); // disable all bg planes
 
     WRITEBYTE(SCREENDISPLAYREG, 0x0f);
 
