@@ -11,21 +11,21 @@ Section CODE:
 	000081b8 __WriteVRam
 	0000823e __preInit
 	0000823f __main
-	000082e6 __IRQHandler
-	000082e7 __NMIHandler
-	000082ee __sbrk
-	0000831a __memcpy
-	0000833b _END_CODE
+	000082d8 __IRQHandler
+	000082d9 __NMIHandler
+	000082e0 __sbrk
+	0000830c __memcpy
+	0000832d _END_CODE
 
 Section DATA:
-	0000833b _BEG_DATA
-	0000837d _END_DATA
+	0000832d _BEG_DATA
+	0000836f _END_DATA
 
 Section UDATA:
-	0000837d _BEG_UDATA
-	0000837f ___heap_top
-	00008381 ___mem_start
-	00008383 _END_UDATA
+	0000836f _BEG_UDATA
+	00008371 ___heap_top
+	00008373 ___mem_start
+	00008375 _END_UDATA
 
 Section registration_data:
 	0000ffb0 _BEG_REGISTRATION_DATA

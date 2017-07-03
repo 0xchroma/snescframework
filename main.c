@@ -97,7 +97,7 @@ static const long tile[] =
 
 static const word poop[] =
 {
-    0xffff,
+    0x0000,
 };
 
 void preInit(void) {
@@ -107,7 +107,6 @@ void preInit(void) {
 
 int main()
 {
-    word paltest = 0xffff;
     word i = 0;
 
     ClearVRam();
@@ -115,26 +114,24 @@ int main()
     WRITEBYTE(SCREENDISPLAYREG, 0x00);
 
     WRITEBYTE(0x210b, (0x2000 >> 12) & 0xfc); // tile data address 0x2000
+
     SETBG1TILEMAPADDR(0x1000); // set BG1 tilemap address
 
     // load tiles
-    WriteVRam((word)empty_tile, 0x2000, 32);
-    WriteVRam((word)tile, 0x2000 + 32, 32);
+    WriteVRam((word)empty_tile, 0x1000, 32);
+    WriteVRam((word)tile, 0x1000 + 32, 32);
 
     // load tilemap
     for (i = 0; i < 1; i++)
-        WriteVRam((word)poop, 0x1000 + (i * 32), sizeof(poop) * 2);
+        WriteVRam((word)poop, 0x2000 + (i * 32), sizeof(poop) * 2);
 
     // load palette
-    WRITEPALCOL(0, paltest);
-    WRITEPALCOL(1, 0x0000);
-    //WRITEPALCOL(2, 0x00ff);
-    //WRITEPALCOL(3, 0x70ff);
-    //WRITEPALCOL(4, 0x7f00);
-    //WRITEPALCOL(5, 0xe111);
+    WRITEPALCOL(0, RGB24toBGR555(0xFFFFFF));
+    WRITEPALCOL(1, RGB24toBGR555(0x000000));
 
-    WRITEBYTE(0x2105, 0x02); // mode 1
-    WRITEBYTE(0x212c, 0x01); // enable plane 0
+    WRITEBYTE(0x2105, 0x01); // mode 1
+    WRITEBYTE(0x212c, 0x0f); // enable plane 0
+    //WRITEBYTE(0x212e, 0x01); // enable plane 0
     //WRITEBYTE(0x212d, 0x00); // disable all subplanes
 
     WRITEBYTE(SCREENDISPLAYREG, 0x0f);
